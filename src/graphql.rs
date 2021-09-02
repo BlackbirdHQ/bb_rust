@@ -73,9 +73,9 @@ struct InternalGraphQLResponse<T: Clone>{
 
 #[derive(Error, Debug)]
 pub enum GraphQLError {
-    #[error("invalid input query")]
+    #[error("invalid input query: {0}")]
     InvalidInputQuery(#[from] serde_json::Error),
-    #[error("failed invoking lambda")]
+    #[error("failed invoking lambda: {0}")]
     LambdaInvoke(#[from] RusotoError<InvokeError>),
     #[error("lambda function error: {0}")]
     LambdaFunctionError(String),
