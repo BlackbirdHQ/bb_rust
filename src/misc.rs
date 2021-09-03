@@ -28,9 +28,11 @@ pub fn compress<T: Serialize>(input: T) -> Vec<u8> {
 
 /// Gzip decompress that is typically used together with base64 encoding to minimize data sent/stored
 pub fn decompress<T: DeserializeOwned>(input: &[u8]) -> T {
+    log::trace!("About to decompress: {:?}", input);
     let mut writer = Vec::new();
     let mut decoder = GzDecoder::new(writer);
-    decoder.write_all(input).unwrap();
+    let base64_decoded = base64::decode(input).unwrap();
+    decoder.write_all(&base64_decoded).unwrap();
     writer = decoder.finish().unwrap();
     serde_json::from_slice(&writer).unwrap()
 }

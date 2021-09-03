@@ -10,6 +10,7 @@ base64 = "0.13"
 dynomite = { version = "0.10.0", default_features = false, features = ["rustls"] }
 env_logger = "0.9"
 flate2 = "1"
+log = "0.4"
 rusoto_core = { version = "0.47.0", default_features = false, features=["rustls"] }
 rusoto_dynamodbstreams = { version = "0.47.0", default_features = false, features=["rustls", "serialize_structs"] }
 rusoto_lambda = { version = "0.47.0", default_features = false, features=["rustls", "serialize_structs"] }
