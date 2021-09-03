@@ -54,9 +54,9 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
 
     let first_result = &res[0];
     if let Some(errors) = &first_result.errors {
-        return Err(GraphQLError::InternalGraphQLError(errors.to_string()));
+        Err(GraphQLError::InternalGraphQLError(errors.to_string()))
     } else {
-        return Ok(first_result.clone().data.unwrap());
+        Ok(first_result.clone().data.unwrap())
     }
 }
 

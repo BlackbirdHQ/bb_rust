@@ -15,7 +15,7 @@ pub fn dynamodb_stream_attrs_to_dynamodb_attrs(
     attrs: &HashMap<String, rusoto_dynamodbstreams::AttributeValue>,
 ) -> HashMap<String, dynomite::AttributeValue> {
     attrs
-        .into_iter()
+        .iter()
         .map(|(k, v)| (k.clone(), attribute_mapper(v)))
         .collect()
 }
