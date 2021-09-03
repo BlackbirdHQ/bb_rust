@@ -31,7 +31,7 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
         "body": body
     })];
     let payload = compress(payload);
-    let payload = base64::encode(payload);
+    let payload = format!("\"{}\"", base64::encode(payload));
     let input = InvocationRequest {
         function_name: lambda_function_name,
         invocation_type: Some("RequestResponse".to_string()),
