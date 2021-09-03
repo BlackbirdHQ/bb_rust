@@ -13,8 +13,8 @@ pub fn setup_aws_lambda_logging() {
                 .to_string()
                 .replace("\n\r", "\r")
                 .replace('\n', "\r");
-
-            writeln!(buf, "{}: {}", record.level(), stripped)
+            
+            writeln!(buf, "{} - {}: {}", record.target(), record.level(), stripped)
         })
         .init();
 }
