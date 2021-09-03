@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use rusoto_dynamodbstreams::Record;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DynamoDbStreamEvent {
@@ -27,8 +27,12 @@ fn attribute_mapper(v: &rusoto_dynamodbstreams::AttributeValue) -> dynomite::Att
         n: v.n.clone(),
         ns: v.ns.clone(),
         null: v.null,
-        m: v.m.clone().map(|x|dynamodb_stream_attrs_to_dynamodb_attrs(&x)),
-        l: v.l.clone().map(|x| x.into_iter().map(|a|attribute_mapper(&a)).collect()),
+        m: v.m
+            .clone()
+            .map(|x| dynamodb_stream_attrs_to_dynamodb_attrs(&x)),
+        l: v.l
+            .clone()
+            .map(|x| x.into_iter().map(|a| attribute_mapper(&a)).collect()),
         ss: v.ss.clone(),
         // Hack to convert between the two different versions of the `bytes` crate
         b: v.b.clone().map(|bytes| bytes.into_iter().collect()),

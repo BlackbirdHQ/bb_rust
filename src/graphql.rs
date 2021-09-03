@@ -1,8 +1,8 @@
 use rusoto_core::RusotoError;
-use serde_json::Value;
-use serde::Serialize;
-use serde::Deserialize;
 use serde::de::DeserializeOwned;
+use serde::Deserialize;
+use serde::Serialize;
+use serde_json::Value;
 
 #[derive(Serialize)]
 pub struct GraphQLRequestBody {
@@ -27,9 +27,7 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
     let body = serde_json::to_string(&graphql)?;
-    let payload = vec![json!({
-        "body": body
-    })];
+    let payload = vec![json!({ "body": body })];
     let payload = compress(payload);
     let payload = format!("\"{}\"", base64::encode(payload));
     let input = InvocationRequest {
@@ -44,15 +42,16 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
         return Err(GraphQLError::LambdaFunctionError(err));
     }
     if response.status_code != Some(200) {
-        return Err(GraphQLError::LambdaFunctionBadStatusCode{
+        return Err(GraphQLError::LambdaFunctionBadStatusCode {
             payload: format!("{:?}", response.payload),
-            status_code: response.status_code
+            status_code: response.status_code,
         });
     }
 
     // Try to parse the GraphQL result
-    let res:[InternalGraphQLResponse<R>; 1]  = decompress(&response.payload.ok_or(GraphQLError::NoResponsePayload)?);
-    
+    let res: [InternalGraphQLResponse<R>; 1] =
+        decompress(&response.payload.ok_or(GraphQLError::NoResponsePayload)?);
+
     let first_result = &res[0];
     if let Some(errors) = &first_result.errors {
         return Err(GraphQLError::InternalGraphQLError(errors.to_string()));
@@ -62,9 +61,9 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
 }
 
 #[derive(Deserialize, Clone)]
-struct InternalGraphQLResponse<T: Clone>{
+struct InternalGraphQLResponse<T: Clone> {
     data: Option<T>,
-    errors: Option<serde_json::Value>
+    errors: Option<serde_json::Value>,
 }
 
 #[derive(Error, Debug)]
@@ -76,14 +75,14 @@ pub enum GraphQLError {
     #[error("lambda function error: {0}")]
     LambdaFunctionError(String),
     #[error("lambda function bad status code {status_code:?} with payload: {payload}")]
-    LambdaFunctionBadStatusCode{
+    LambdaFunctionBadStatusCode {
         status_code: Option<i64>,
-        payload: String
+        payload: String,
     },
     #[error("no response payload")]
     NoResponsePayload,
     #[error("bad json response. Error: {0}")]
     UnexpectedJsonResponse(serde_json::Error),
     #[error("internal graphql error: {0}")]
-    InternalGraphQLError(String)
+    InternalGraphQLError(String),
 }
