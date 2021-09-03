@@ -41,16 +41,29 @@ pub fn decompress<T: DeserializeOwned>(input: &[u8]) -> T {
     log::trace!("About to decompress: {:?}", input);
     let mut writer = Vec::new();
     let mut decoder = GzDecoder::new(writer);
-    // the input is base64 encoded, but with explicit '"', so remove those
-    let base64_decoded = base64::decode(&input[1..input.len() - 1]).unwrap();
-    decoder.write_all(&base64_decoded).unwrap();
+
+    // try to base64 decode, and if that fails, then just try to proceed.
+    // If base64 encoded the input includes explicit '"' which we want to remove
+    let input = base64::decode(&input[1..input.len() - 1]).unwrap_or_else(|_| input.to_vec());
+
+    decoder.write_all(&input).unwrap();
     writer = decoder.finish().unwrap();
     serde_json::from_slice(&writer).unwrap()
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::misc::compress;
+
     use super::decompress;
+
+    #[test]
+    fn test_compress_decompress() {
+        let input = "hejhej";
+        let compressed = compress(input);
+        let decompressed: String = decompress(&compressed);
+        assert_eq!(input, decompressed)
+    }
 
     #[test]
     fn test_decompress() {
