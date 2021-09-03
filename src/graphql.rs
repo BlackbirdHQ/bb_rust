@@ -4,12 +4,6 @@ use serde::Serialize;
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
 
-
-#[derive(Serialize)]
-pub struct GraphQLRequest {
-    pub body: GraphQLRequestBody,
-}
-
 #[derive(Serialize)]
 pub struct GraphQLRequestBody {
     pub query: String,
@@ -18,6 +12,7 @@ pub struct GraphQLRequestBody {
 }
 
 use rusoto_lambda::{InvocationRequest, InvokeError, Lambda};
+use serde_json::json;
 
 use crate::misc::{compress, decompress};
 
@@ -28,10 +23,13 @@ use thiserror::Error;
 /// **Note**: Do not use this method for querying the public-facing ms-graphql-gateway.
 pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     lambda: &L,
-    graphql: GraphQLRequest,
+    graphql: GraphQLRequestBody,
     lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
-    let payload = serde_json::to_string(&graphql)?;
+    let body = serde_json::to_string(&graphql)?;
+    let payload = vec![json!({
+        "body": body
+    })];
     let payload = compress(payload);
     let payload = base64::encode(payload);
     let input = InvocationRequest {
@@ -53,11 +51,9 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     }
 
     // Try to parse the GraphQL result
-    let res = decompress(&response.payload.ok_or(GraphQLError::NoResponsePayload)?);
-    let parsed_response: [InternalGraphQLResponse<R>; 1] = serde_json::from_slice(&res).map_err(|e|GraphQLError::UnexpectedJsonResponse(e))?;
+    let res:[InternalGraphQLResponse<R>; 1]  = decompress(&response.payload.ok_or(GraphQLError::NoResponsePayload)?);
     
-    
-    let first_result = &parsed_response[0];
+    let first_result = &res[0];
     if let Some(errors) = &first_result.errors {
         return Err(GraphQLError::InternalGraphQLError(errors.to_string()));
     } else {
