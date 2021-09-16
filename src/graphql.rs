@@ -14,6 +14,7 @@ pub struct GraphQLRequestBody {
 use rusoto_lambda::{InvocationRequest, InvokeError, Lambda};
 use serde_json::json;
 
+use crate::misc::DecompressError;
 use crate::misc::{compress, decompress};
 
 use thiserror::Error;
@@ -50,7 +51,7 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
 
     // Try to parse the GraphQL result
     let res: [InternalGraphQLResponse<R>; 1] =
-        decompress(&response.payload.ok_or(GraphQLError::NoResponsePayload)?);
+        decompress(&response.payload.ok_or(GraphQLError::NoResponsePayload)?)?;
 
     let first_result = &res[0];
     if let Some(errors) = &first_result.errors {
@@ -70,6 +71,8 @@ struct InternalGraphQLResponse<T: Clone> {
 pub enum GraphQLError {
     #[error("invalid input query: {0}")]
     InvalidInputQuery(#[from] serde_json::Error),
+    #[error("decompress error: {0}")]
+    DecompressError(#[from] DecompressError),
     #[error("failed invoking lambda: {0}")]
     LambdaInvoke(#[from] RusotoError<InvokeError>),
     #[error("lambda function error: {0}")]
