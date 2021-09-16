@@ -5,6 +5,7 @@ use flate2::{
     Compression,
 };
 use serde::{de::DeserializeOwned, Serialize};
+use thiserror::Error;
 
 pub fn setup_aws_lambda_logging() {
     env_logger::builder()
@@ -36,19 +37,28 @@ pub fn compress<T: Serialize>(input: T) -> Vec<u8> {
     e.finish().unwrap()
 }
 
+#[derive(Error, Debug)]
+pub enum DecompressError {
+    #[error("GZ decoder error: {0}")]
+    DecoderWriterError(#[from] std::io::Error),
+    #[error("bad json response. Error: {0}")]
+    UnexpectedJsonResponse(#[from] serde_json::Error),
+}
+
 /// Gzip decompress that is typically used together with base64 encoding to minimize data sent/stored
-pub fn decompress<T: DeserializeOwned>(input: &[u8]) -> T {
+pub fn decompress<T: DeserializeOwned>(input: &[u8]) -> Result<T, DecompressError> {
     log::trace!("About to decompress: {:?}", input);
     let mut writer = Vec::new();
     let mut decoder = GzDecoder::new(writer);
 
     // try to base64 decode, and if that fails, then just try to proceed.
     // If base64 encoded the input includes explicit '"' which we want to remove
+
     let input = base64::decode(&input[1..input.len() - 1]).unwrap_or_else(|_| input.to_vec());
 
-    decoder.write_all(&input).unwrap();
-    writer = decoder.finish().unwrap();
-    serde_json::from_slice(&writer).unwrap()
+    decoder.write_all(&input)?;
+    writer = decoder.finish()?;
+    Ok(serde_json::from_slice(&writer)?)
 }
 
 #[cfg(test)]
@@ -61,7 +71,7 @@ mod tests {
     fn test_compress_decompress() {
         let input = "hejhej";
         let compressed = compress(input);
-        let decompressed: String = decompress(&compressed);
+        let decompressed: String = decompress(&compressed).unwrap();
         assert_eq!(input, decompressed)
     }
 
@@ -76,7 +86,7 @@ mod tests {
             108, 50, 116, 114, 97, 87, 65, 65, 57, 116, 83, 56, 84, 83, 65, 65, 65, 65, 65, 61, 61,
             34,
         ];
-        let x: serde_json::Value = decompress(&input);
+        let x: serde_json::Value = decompress(&input).unwrap();
         let id = x.as_array().unwrap()[0]
             .get("data")
             .unwrap()
