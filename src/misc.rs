@@ -29,12 +29,19 @@ pub fn setup_aws_lambda_logging() {
         .init();
 }
 
+#[derive(Error, Debug)]
+pub enum CompressError {
+    #[error("GZ encoder error: {0}")]
+    EncoderWriterError(#[from] std::io::Error),
+    #[error("bad json response. Error: {0}")]
+    UnexpectedJsonResponse(#[from] serde_json::Error),
+}
+
 /// Gzip compress that is typically used together with base64 encoding to minimize data sent/stored
-pub fn compress<T: Serialize>(input: T) -> Vec<u8> {
+pub fn compress<T: Serialize>(input: T) -> Result<Vec<u8>, CompressError> {
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
-    e.write_all(serde_json::to_string(&input).unwrap().as_bytes())
-        .unwrap();
-    e.finish().unwrap()
+    e.write_all(serde_json::to_string(&input)?.as_bytes())?;
+    Ok(e.finish()?)
 }
 
 #[derive(Error, Debug)]
@@ -70,7 +77,7 @@ mod tests {
     #[test]
     fn test_compress_decompress() {
         let input = "hejhej";
-        let compressed = compress(input);
+        let compressed = compress(input).unwrap();
         let decompressed: String = decompress(&compressed).unwrap();
         assert_eq!(input, decompressed)
     }

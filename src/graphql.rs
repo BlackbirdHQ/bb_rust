@@ -29,7 +29,7 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
 ) -> Result<R, GraphQLError> {
     let body = serde_json::to_string(&graphql)?;
     let payload = vec![json!({ "body": body })];
-    let payload = compress(payload);
+    let payload = compress(payload).unwrap();
     let payload = format!("\"{}\"", base64::encode(payload));
     let input = InvocationRequest {
         function_name: lambda_function_name,
