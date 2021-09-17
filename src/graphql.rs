@@ -14,6 +14,7 @@ pub struct GraphQLRequestBody {
 use rusoto_lambda::{InvocationRequest, InvokeError, Lambda};
 use serde_json::json;
 
+use crate::misc::CompressError;
 use crate::misc::DecompressError;
 use crate::misc::{compress, decompress};
 
@@ -29,7 +30,7 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
 ) -> Result<R, GraphQLError> {
     let body = serde_json::to_string(&graphql)?;
     let payload = vec![json!({ "body": body })];
-    let payload = compress(payload).unwrap();
+    let payload = compress(payload)?;
     let payload = format!("\"{}\"", base64::encode(payload));
     let input = InvocationRequest {
         function_name: lambda_function_name,
@@ -57,7 +58,10 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     if let Some(errors) = &first_result.errors {
         Err(GraphQLError::InternalGraphQLError(errors.to_string()))
     } else {
-        Ok(first_result.clone().data.unwrap())
+        Ok(first_result
+            .clone()
+            .data
+            .expect("GraphQL result did not have data field"))
     }
 }
 
@@ -88,4 +92,6 @@ pub enum GraphQLError {
     UnexpectedJsonResponse(serde_json::Error),
     #[error("internal graphql error: {0}")]
     InternalGraphQLError(String),
+    #[error("bad format: {0}")]
+    BadFormat(#[from] CompressError),
 }
