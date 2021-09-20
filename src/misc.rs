@@ -7,6 +7,17 @@ use flate2::{
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
+/// Helper macro until the Try block syntax gets stable https://github.com/rust-lang/rust/issues/31436
+#[macro_export]
+macro_rules! try_block {
+    { $($token:tt)* } => {{
+        let l = || {
+            $($token)*
+        };
+        l()
+    }}
+}
+
 pub fn setup_aws_lambda_logging() {
     env_logger::builder()
         .format(|buf, record| {
