@@ -7,7 +7,8 @@ edition = "2018"
 
 [dependencies]
 base64 = "0.13"
-dynomite = { version = "0.10.0", default_features = false, features = ["rustls"] }
+# Version on crates.io is old, and maintainer is not accepting my PRs atm, so use my fork
+dynomite = { git = "https://github.com/simonvandel/dynomite.git", rev = "60882d88435a30a86ff8157da8c15efe297455ec", default_features = false, features=["rustls"] }
 env_logger = "0.9"
 flate2 = "1"
 log = "0.4"
