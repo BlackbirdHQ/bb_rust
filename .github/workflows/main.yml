@@ -4,12 +4,11 @@ name: bb_rust
 on:
   push:
     paths:
-      - 'src/**'
-      - 'cargo.toml'
-      - '.github/workflows/main.yml'
+      - "src/**"
+      - "Cargo.toml"
+      - ".github/workflows/main.yml"
 
 jobs:
-
   fmt:
     runs-on: ubuntu-latest
     steps:
