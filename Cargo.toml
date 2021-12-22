@@ -19,3 +19,7 @@ serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
 serde_json = "1"
 thiserror = "1"
+
+[dev-dependencies]
+tokio = "1"
+anyhow = "1"
