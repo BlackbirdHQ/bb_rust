@@ -1,24 +1,19 @@
-use rusoto_core::RusotoError;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::misc::{compress, decompress};
+use rusoto_lambda::{InvocationRequest, Lambda};
+use serde_json::json;
+
+use super::GraphQLError;
 #[derive(Serialize)]
 pub struct GraphQLRequestBody {
     pub query: String,
     pub variables: Value,
     pub context: Value,
 }
-
-use rusoto_lambda::{InvocationRequest, InvokeError, Lambda};
-use serde_json::json;
-
-use crate::misc::CompressError;
-use crate::misc::DecompressError;
-use crate::misc::{compress, decompress};
-
-use thiserror::Error;
 
 /// Invokes a graphql query against an *internal* AWS lambda, e.g. ms-graphql-devices.
 ///
@@ -69,29 +64,4 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
 struct InternalGraphQLResponse<T: Clone> {
     data: Option<T>,
     errors: Option<serde_json::Value>,
-}
-
-#[derive(Error, Debug)]
-pub enum GraphQLError {
-    #[error("invalid input query: {0}")]
-    InvalidInputQuery(#[from] serde_json::Error),
-    #[error("decompress error: {0}")]
-    DecompressError(#[from] DecompressError),
-    #[error("failed invoking lambda: {0}")]
-    LambdaInvoke(#[from] RusotoError<InvokeError>),
-    #[error("lambda function error: {0}")]
-    LambdaFunctionError(String),
-    #[error("lambda function bad status code {status_code:?} with payload: {payload}")]
-    LambdaFunctionBadStatusCode {
-        status_code: Option<i64>,
-        payload: String,
-    },
-    #[error("no response payload")]
-    NoResponsePayload,
-    #[error("bad json response. Error: {0}")]
-    UnexpectedJsonResponse(serde_json::Error),
-    #[error("internal graphql error: {0}")]
-    InternalGraphQLError(String),
-    #[error("bad format: {0}")]
-    BadFormat(#[from] CompressError),
 }
