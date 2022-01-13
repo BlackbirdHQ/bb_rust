@@ -16,8 +16,8 @@ pub struct GatewayGraphQLRequestBody {
 }
 
 #[derive(Deserialize, Clone)]
-struct GatewayGraphQLResponse<T: Clone> {
-    body: Option<T>,
+struct GatewayGraphQLResponse {
+    body: Option<serde_json::Value>,
     errors: Option<serde_json::Value>,
 }
 
@@ -49,12 +49,17 @@ pub async fn gateway_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     }
 
     // Try to parse the GraphQL result
-    let res: GatewayGraphQLResponse<R> =
+    let res: GatewayGraphQLResponse =
         serde_json::from_slice(&response.payload.ok_or(GraphQLError::NoResponsePayload)?)?;
 
     if let Some(errors) = &res.errors {
         Err(GraphQLError::InternalGraphQLError(errors.to_string()))
     } else {
-        Ok(res.body.expect("GraphQL result did not have data field"))
+        Ok(serde_json::from_str(
+            res.body
+                .expect("GraphQL result did not have data field")
+                .as_str()
+                .expect("GraphQL body must be string"),
+        )?)
     }
 }
