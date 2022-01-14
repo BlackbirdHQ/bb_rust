@@ -1,6 +1,4 @@
 use bb_rust::graphql::{gateway_graphql_request, GatewayGraphQLRequestBody};
-use rusoto_core::Region;
-use rusoto_lambda::LambdaClient;
 use serde_json::json;
 
 #[tokio::main]
@@ -50,10 +48,10 @@ async fn main() -> Result<(), anyhow::Error> {
         userpool_id: "eu-west-1_lu59lbvt7".to_string(),
     };
 
-    let lambda = LambdaClient::new(Region::EuWest1);
+    let lambda = aws_sdk_lambda::Client::new(&aws_config::load_from_env().await);
 
     let raw_resp =
-        gateway_graphql_request::<serde_json::Value, _>(&lambda, &graphql, function_name).await?;
+        gateway_graphql_request::<serde_json::Value>(lambda, &graphql, function_name).await?;
     println!("{:?}", &raw_resp);
     Ok(())
 }
