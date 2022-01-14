@@ -7,6 +7,7 @@ edition = "2018"
 
 [dependencies]
 base64 = "0.13"
+aws-sdk-lambda = "0.4.1"
 # Version on crates.io is old, and maintainer is not accepting my PRs atm, so use my fork
 dynomite = { git = "https://github.com/simonvandel/dynomite.git", rev = "60882d88435a30a86ff8157da8c15efe297455ec", default_features = false, features=["rustls"] }
 env_logger = "0.9"
@@ -14,7 +15,6 @@ flate2 = "1"
 log = "0.4"
 rusoto_core = { version = "0.47.0", default_features = false, features=["rustls"] }
 rusoto_dynamodbstreams = { version = "0.47.0", default_features = false, features=["rustls", "serialize_structs"] }
-rusoto_lambda = { version = "0.47.0", default_features = false, features=["rustls", "serialize_structs"] }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
 serde_json = "1"
@@ -23,3 +23,4 @@ thiserror = "1"
 [dev-dependencies]
 tokio = "1"
 anyhow = "1"
+aws-config = "0.4.1"

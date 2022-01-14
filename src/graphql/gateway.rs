@@ -1,9 +1,9 @@
+use aws_sdk_lambda::model::InvocationType;
+use aws_sdk_lambda::Blob;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
-
-use rusoto_lambda::{InvocationRequest, Lambda};
 
 use super::GraphQLError;
 
@@ -25,23 +25,23 @@ struct GatewayGraphQLResponse {
 ///
 /// **Note**: Do not use this method for querying the internal-facing lambdas e.g. ms-graphql-devices-entry
 // Implementation based on https://github.com/BlackbirdHQ/cloud-services/blob/ca6fce3e0ec2d1d5744f074330d3b52b090eb340/ms-graphql-export/src/helpers/blackbird-api.ts#L18
-pub async fn gateway_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
-    lambda: &L,
+pub async fn gateway_graphql_request<R: DeserializeOwned + Clone>(
+    lambda: aws_sdk_lambda::Client,
     graphql: &GatewayGraphQLRequestBody,
     gateway_lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
-    let input = InvocationRequest {
-        function_name: gateway_lambda_function_name,
-        invocation_type: Some("RequestResponse".to_string()),
-        payload: Some(serde_json::to_string(&graphql)?.into()),
-        ..Default::default()
-    };
+    let response = lambda
+        .invoke()
+        .function_name(gateway_lambda_function_name)
+        .invocation_type(InvocationType::RequestResponse)
+        .payload(Blob::new(serde_json::to_string(&graphql)?))
+        .send()
+        .await?;
 
-    let response = lambda.invoke(input).await?;
     if let Some(err) = response.function_error {
         return Err(GraphQLError::LambdaFunctionError(err));
     }
-    if response.status_code != Some(200) {
+    if response.status_code != 200 {
         return Err(GraphQLError::LambdaFunctionBadStatusCode {
             payload: format!("{:?}", response.payload),
             status_code: response.status_code,
@@ -49,8 +49,12 @@ pub async fn gateway_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     }
 
     // Try to parse the GraphQL result
-    let res: GatewayGraphQLResponse =
-        serde_json::from_slice(&response.payload.ok_or(GraphQLError::NoResponsePayload)?)?;
+    let res: GatewayGraphQLResponse = serde_json::from_slice(
+        response
+            .payload
+            .ok_or(GraphQLError::NoResponsePayload)?
+            .as_ref(),
+    )?;
 
     if let Some(errors) = &res.errors {
         Err(GraphQLError::InternalGraphQLError(errors.to_string()))

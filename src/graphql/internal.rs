@@ -1,10 +1,11 @@
+use aws_sdk_lambda::model::InvocationType;
+use aws_sdk_lambda::Blob;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
 
 use crate::misc::{compress, decompress};
-use rusoto_lambda::{InvocationRequest, Lambda};
 use serde_json::json;
 
 use super::GraphQLError;
@@ -18,8 +19,8 @@ pub struct GraphQLRequestBody {
 /// Invokes a graphql query against an *internal* AWS lambda, e.g. ms-graphql-devices.
 ///
 /// **Note**: Do not use this method for querying the public-facing ms-graphql-gateway.
-pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
-    lambda: &L,
+pub async fn internal_graphql_request<R: DeserializeOwned + Clone>(
+    lambda: &aws_sdk_lambda::Client,
     graphql: GraphQLRequestBody,
     lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
@@ -27,18 +28,18 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     let payload = vec![json!({ "body": body })];
     let payload = compress(payload)?;
     let payload = format!("\"{}\"", base64::encode(payload));
-    let input = InvocationRequest {
-        function_name: lambda_function_name,
-        invocation_type: Some("RequestResponse".to_string()),
-        payload: Some(payload.into()),
-        ..Default::default()
-    };
 
-    let response = lambda.invoke(input).await?;
+    let response = lambda
+        .invoke()
+        .function_name(lambda_function_name)
+        .invocation_type(InvocationType::RequestResponse)
+        .payload(Blob::new(payload))
+        .send()
+        .await?;
     if let Some(err) = response.function_error {
         return Err(GraphQLError::LambdaFunctionError(err));
     }
-    if response.status_code != Some(200) {
+    if response.status_code != 200 {
         return Err(GraphQLError::LambdaFunctionBadStatusCode {
             payload: format!("{:?}", response.payload),
             status_code: response.status_code,
@@ -46,8 +47,12 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone, L: Lambda>(
     }
 
     // Try to parse the GraphQL result
-    let res: [InternalGraphQLResponse<R>; 1] =
-        decompress(&response.payload.ok_or(GraphQLError::NoResponsePayload)?)?;
+    let res: [InternalGraphQLResponse<R>; 1] = decompress(
+        response
+            .payload
+            .ok_or(GraphQLError::NoResponsePayload)?
+            .as_ref(),
+    )?;
 
     let first_result = &res[0];
     if let Some(errors) = &first_result.errors {
