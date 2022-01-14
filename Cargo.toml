@@ -1,26 +1,31 @@
 [package]
 name = "bb_rust"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[example]]
+name = "gateway_graphql_request"
+required-features = ["graphql"]
 
 [dependencies]
-base64 = "0.13"
-aws-sdk-lambda = "0.4.1"
-# Version on crates.io is old, and maintainer is not accepting my PRs atm, so use my fork
-dynomite = { git = "https://github.com/simonvandel/dynomite.git", rev = "60882d88435a30a86ff8157da8c15efe297455ec", default_features = false, features=["rustls"] }
-env_logger = "0.9"
-flate2 = "1"
-log = "0.4"
-rusoto_core = { version = "0.47.0", default_features = false, features=["rustls"] }
-rusoto_dynamodbstreams = { version = "0.47.0", default_features = false, features=["rustls", "serialize_structs"] }
+base64 = {version = "0.13", optional = true }
+aws-sdk-lambda = { version = "0.4.1", optional = true }
+dynomite = { git = "https://github.com/softprops/dynomite.git", rev = "4669592b83750ef7d6f40265c729ed059e86b119", default_features = false, features=["rustls"], optional = true }
+env_logger = {version = "0.9", optional = true }
+flate2 = { version = "1", optional = true }
+log = {version = "0.4", optional = true}
+rusoto_dynamodbstreams = { version = "0.47.0", default_features = false, features=["rustls", "serialize_structs"], optional = true }
 serde = { version = "1", features = ["derive"] }
-serde_derive = "1"
 serde_json = "1"
-thiserror = "1"
+thiserror = { version = "1", optional = true }
 
 [dev-dependencies]
-tokio = "1"
+tokio = {version = "1", features = ["macros", "rt-multi-thread"] }
 anyhow = "1"
 aws-config = "0.4.1"
+
+[features]
+default = []
+dynamodb = ["dynomite", "rusoto_dynamodbstreams"]
+misc = ["thiserror", "flate2", "base64", "env_logger", "log"]
+graphql = ["misc", "base64", "aws-sdk-lambda"]
