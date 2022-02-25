@@ -7,6 +7,10 @@ use flate2::{
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
+lazy_static! {
+    static ref AWS_LAMBDA_RUNTIME_API: Option<String> = std::env::var("AWS_LAMBDA_RUNTIME_API");
+}
+
 /// Helper macro until the Try block syntax gets stable https://github.com/rust-lang/rust/issues/31436
 #[macro_export]
 macro_rules! try_block {
@@ -23,18 +27,22 @@ pub fn setup_aws_lambda_logging() {
         .format(|buf, record| {
             // AWS Cloudwatch logs show a new line for each '\n'
             // so replace that with '\r'
-            let stripped = record
-                .args()
-                .to_string()
-                .replace("\n\r", "\r")
-                .replace('\n', "\r");
+            let message = if AWS_LAMBDA_RUNTIME_API.is_some() {
+                record
+                    .args()
+                    .to_string()
+                    .replace("\n\r", "\r")
+                    .replace('\n', "\r");
+            } else {
+                record
+            }
 
             writeln!(
                 buf,
                 "{} - {}: {}",
                 record.target(),
                 record.level(),
-                stripped
+                message
             )
         })
         .init();
