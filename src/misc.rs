@@ -9,7 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 
 lazy_static! {
-    static ref AWS_LAMBDA_RUNTIME_API: Option<String> = std::env::var("AWS_LAMBDA_RUNTIME_API");
+    static ref AWS_LAMBDA_RUNTIME_API: Option<String> =
+        std::env::var("AWS_LAMBDA_RUNTIME_API").ok();
 }
 
 /// Helper macro until the Try block syntax gets stable https://github.com/rust-lang/rust/issues/31436
