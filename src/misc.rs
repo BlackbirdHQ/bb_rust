@@ -37,13 +37,7 @@ pub fn setup_aws_lambda_logging() {
                 record
             };
 
-            writeln!(
-                buf,
-                "{} - {}: {}",
-                record.target(),
-                record.level(),
-                message
-            )
+            writeln!(buf, "{} - {}: {}", record.target(), record.level(), message)
         })
         .init();
 }
