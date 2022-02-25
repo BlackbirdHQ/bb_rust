@@ -35,7 +35,7 @@ pub fn setup_aws_lambda_logging() {
                     .replace('\n', "\r");
             } else {
                 record
-            }
+            };
 
             writeln!(
                 buf,
