@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use std::io::Write;
 
 use flate2::{
