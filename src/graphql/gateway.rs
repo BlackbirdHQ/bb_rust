@@ -3,14 +3,13 @@ use aws_sdk_lambda::Blob;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::Value;
 
 use super::GraphQLError;
 
 #[derive(Serialize)]
-pub struct GatewayGraphQLRequestBody {
+pub struct GatewayGraphQLRequestBody<V: Serialize> {
     pub query: String,
-    pub variables: Value,
+    pub variables: V,
     #[serde(rename = "userPool")]
     pub userpool_id: String,
 }
@@ -25,9 +24,9 @@ struct GatewayGraphQLResponse {
 ///
 /// **Note**: Do not use this method for querying the internal-facing lambdas e.g. ms-graphql-devices-entry
 // Implementation based on https://github.com/BlackbirdHQ/cloud-services/blob/ca6fce3e0ec2d1d5744f074330d3b52b090eb340/ms-graphql-export/src/helpers/blackbird-api.ts#L18
-pub async fn gateway_graphql_request<R: DeserializeOwned + Clone>(
-    lambda: aws_sdk_lambda::Client,
-    graphql: &GatewayGraphQLRequestBody,
+pub async fn gateway_graphql_request<V: Serialize, R: DeserializeOwned>(
+    lambda: &aws_sdk_lambda::Client,
+    graphql: &GatewayGraphQLRequestBody<V>,
     gateway_lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
     let response = lambda
