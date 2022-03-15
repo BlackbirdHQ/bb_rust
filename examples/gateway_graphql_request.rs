@@ -51,7 +51,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let lambda = aws_sdk_lambda::Client::new(&aws_config::load_from_env().await);
 
     let raw_resp =
-        gateway_graphql_request::<serde_json::Value>(lambda, &graphql, function_name).await?;
+        gateway_graphql_request::<_, serde_json::Value>(&lambda, &graphql, function_name).await?;
     println!("{:?}", &raw_resp);
     Ok(())
 }
