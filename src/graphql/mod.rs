@@ -17,7 +17,7 @@ pub enum GraphQLError {
     #[error("decompress error: {0}")]
     DecompressError(#[from] DecompressError),
     #[error("failed invoking lambda: {0}")]
-    LambdaInvoke(#[from] aws_sdk_lambda::SdkError<aws_sdk_lambda::error::InvokeError>),
+    LambdaInvoke(#[from] aws_sdk_lambda::types::SdkError<aws_sdk_lambda::error::InvokeError>),
     #[error("lambda function error: {0}")]
     LambdaFunctionError(String),
     #[error("lambda function bad status code {status_code} with payload: {payload}")]

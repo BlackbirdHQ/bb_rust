@@ -1,5 +1,5 @@
 use aws_sdk_lambda::model::InvocationType;
-use aws_sdk_lambda::Blob;
+use aws_sdk_lambda::types::Blob;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
