@@ -20,7 +20,7 @@ pub struct GraphQLRequestBody {
 ///
 /// **Note**: Do not use this method for querying the public-facing ms-graphql-gateway.
 pub async fn internal_graphql_request<R: DeserializeOwned + Clone>(
-    lambda: &aws_sdk_lambda::Client,
+    lambda: &aws_sdk_lambda::client::Client,
     graphql: GraphQLRequestBody,
     lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
