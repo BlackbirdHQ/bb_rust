@@ -9,7 +9,7 @@ required-features = ["graphql"]
 
 [dependencies]
 base64 = {version = "0.13", optional = true }
-aws-sdk-lambda = { version = "0.6", optional = true }
+aws-sdk-lambda = { version = "0.8", optional = true }
 dynomite = { git = "https://github.com/softprops/dynomite.git", rev = "4669592b83750ef7d6f40265c729ed059e86b119", default_features = false, features=["rustls"], optional = true }
 env_logger = {version = "0.9", optional = true }
 flate2 = { version = "1", optional = true }
