@@ -25,7 +25,7 @@ struct GatewayGraphQLResponse {
 /// **Note**: Do not use this method for querying the internal-facing lambdas e.g. ms-graphql-devices-entry
 // Implementation based on https://github.com/BlackbirdHQ/cloud-services/blob/ca6fce3e0ec2d1d5744f074330d3b52b090eb340/ms-graphql-export/src/helpers/blackbird-api.ts#L18
 pub async fn gateway_graphql_request<V: Serialize, R: DeserializeOwned>(
-    lambda: &aws_sdk_lambda::client::Client,
+    lambda: &aws_sdk_lambda::Client,
     graphql: &GatewayGraphQLRequestBody<V>,
     gateway_lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
