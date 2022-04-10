@@ -34,7 +34,7 @@ pub async fn gateway_graphql_request<V: Serialize, R: DeserializeOwned>(
         .invoke()
         .function_name(gateway_lambda_function_name)
         .invocation_type(InvocationType::RequestResponse)
-        .payload(Blob::new(serde_json::to_string(&graphql)?))
+        .payload(Blob::new(serde_json::to_vec(&graphql)?))
         .send()
         .await?;
 
