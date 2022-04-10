@@ -14,10 +14,11 @@ pub struct GatewayGraphQLRequestBody<V: Serialize> {
     pub userpool_id: String,
 }
 
-#[derive(Deserialize, Clone)]
-struct GatewayGraphQLResponse {
-    body: Option<serde_json::Value>,
-    errors: Option<serde_json::Value>,
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum GatewayGraphQLResponse {
+    Data { body: serde_json::Value },
+    Error { errors: serde_json::Value },
 }
 
 /// Invokes a graphql query against an the gateway AWS lambda, i.e. ms-graphql-gateway.
@@ -55,14 +56,12 @@ pub async fn gateway_graphql_request<V: Serialize, R: DeserializeOwned>(
             .as_ref(),
     )?;
 
-    if let Some(errors) = &res.errors {
-        Err(GraphQLError::InternalGraphQLError(errors.to_string()))
-    } else {
-        Ok(serde_json::from_str(
-            res.body
-                .expect("GraphQL result did not have data field")
-                .as_str()
-                .expect("GraphQL body must be string"),
-        )?)
+    match res {
+        GatewayGraphQLResponse::Data { body } => Ok(serde_json::from_str(
+            body.as_str().expect("GraphQL body must be string"),
+        )?),
+        GatewayGraphQLResponse::Error { errors } => {
+            Err(GraphQLError::InternalGraphQLError(errors.to_string()))
+        }
     }
 }
