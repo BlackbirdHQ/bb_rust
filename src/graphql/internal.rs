@@ -19,7 +19,7 @@ pub struct GraphQLRequestBody {
 /// Invokes a graphql query against an *internal* AWS lambda, e.g. ms-graphql-devices.
 ///
 /// **Note**: Do not use this method for querying the public-facing ms-graphql-gateway.
-pub async fn internal_graphql_request<R: DeserializeOwned + Clone>(
+pub async fn internal_graphql_request<R: DeserializeOwned>(
     lambda: &aws_sdk_lambda::client::Client,
     graphql: GraphQLRequestBody,
     lambda_function_name: String,
@@ -54,19 +54,16 @@ pub async fn internal_graphql_request<R: DeserializeOwned + Clone>(
             .as_ref(),
     )?;
 
-    let first_result = &res[0];
-    if let Some(errors) = &first_result.errors {
+    let r = res.into_iter().next().unwrap();
+    if let Some(errors) = r.errors {
         Err(GraphQLError::InternalGraphQLError(errors.to_string()))
     } else {
-        Ok(first_result
-            .clone()
-            .data
-            .expect("GraphQL result did not have data field"))
+        Ok(r.data.expect("GraphQL result did not have data field"))
     }
 }
 
-#[derive(Deserialize, Clone)]
-struct InternalGraphQLResponse<T: Clone> {
+#[derive(Deserialize)]
+struct InternalGraphQLResponse<T> {
     data: Option<T>,
     errors: Option<serde_json::Value>,
 }
