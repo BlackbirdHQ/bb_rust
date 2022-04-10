@@ -7,7 +7,7 @@ use serde::Serialize;
 use super::GraphQLError;
 
 #[derive(Serialize)]
-pub struct GatewayGraphQLRequestBody<V: Serialize> {
+pub struct GatewayGraphQLRequestBody<V> {
     pub query: String,
     pub variables: V,
     #[serde(rename = "userPool")]
