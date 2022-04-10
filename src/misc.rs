@@ -5,7 +5,7 @@ use flate2::{
     write::{GzDecoder, GzEncoder},
     Compression,
 };
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use thiserror::Error;
 
 lazy_static! {
@@ -49,6 +49,40 @@ pub fn setup_aws_lambda_logging() {
         .init();
 }
 
+/// Serialized as `gzip(toJson(data))`
+/// Derialized as `gunzip(fromJson(data))`
+#[derive(Clone, Debug)]
+pub struct GzippedJSON<T>(pub T);
+
+impl<'de, T: DeserializeOwned> Deserialize<'de> for GzippedJSON<T> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let bytes = <serde_bytes::ByteBuf>::deserialize(deserializer)?;
+        let mut writer = Vec::new();
+        let mut decoder = GzDecoder::new(writer);
+
+        decoder
+            .write_all(&bytes)
+            .map_err(serde::de::Error::custom)?;
+        writer = decoder.finish().map_err(serde::de::Error::custom)?;
+        Ok(GzippedJSON(
+            serde_json::from_slice(&writer).map_err(serde::de::Error::custom)?,
+        ))
+    }
+}
+
+impl<T: Serialize> Serialize for GzippedJSON<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let bytes = compress(&self.0).map_err(serde::ser::Error::custom)?;
+        serializer.serialize_bytes(&bytes)
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum CompressError {
     #[error("GZ encoder error: {0}")]
@@ -90,9 +124,12 @@ pub fn decompress<T: DeserializeOwned>(input: &[u8]) -> Result<T, DecompressErro
 
 #[cfg(test)]
 mod tests {
+    use aws_sdk_dynamodb::model::AttributeValue;
+    use serde_dynamo::{from_attribute_value, to_attribute_value};
+
     use crate::misc::compress;
 
-    use super::decompress;
+    use super::{decompress, GzippedJSON};
 
     #[test]
     fn test_compress_decompress() {
@@ -124,5 +161,14 @@ mod tests {
             .as_str()
             .unwrap();
         assert_eq!(id, "86d09530-0a54-11ec-b69f-cf2fbd32de70")
+    }
+
+    #[test]
+    fn test_gzip_wrapper() {
+        let gzipped = GzippedJSON("hej".to_string());
+        let attr_value: AttributeValue = to_attribute_value(gzipped.clone()).unwrap();
+        assert!(attr_value.is_b());
+        let back: GzippedJSON<String> = from_attribute_value(attr_value).unwrap();
+        assert_eq!(gzipped.0, back.0)
     }
 }
