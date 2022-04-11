@@ -3,10 +3,10 @@ use std::collections::HashSet;
 use aws_sdk_lambda::model::InvocationType;
 use aws_sdk_lambda::types::Blob;
 use serde::de::DeserializeOwned;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::graphql::GraphQLResponse;
 use crate::misc::{compress, decompress};
 use crate::types::PeripheralId;
 use serde_json::json;
@@ -69,27 +69,17 @@ pub async fn internal_graphql_request<R: DeserializeOwned>(
             status_code: response.status_code,
         });
     }
+    let payload = response.payload.ok_or(GraphQLError::NoResponsePayload)?;
 
-    // Try to parse the GraphQL result
-    let res: [InternalGraphQLResponse<R>; 1] = decompress(
-        response
-            .payload
-            .ok_or(GraphQLError::NoResponsePayload)?
-            .as_ref(),
-    )?;
+    // The format of the payload received is "<base64>" (the quotation marks are included in the payload).
+    // We "parse" the string by removing the quotation marks, and then base64 decode it, before decompressing it.
+    let base64_decoded = base64::decode(&payload.as_ref()[1..payload.as_ref().len() - 1]).unwrap();
+    let [r]: [GraphQLResponse; 1] = decompress(&base64_decoded)?;
 
-    let r = res.into_iter().next().unwrap();
-    if let Some(errors) = r.errors {
-        Err(GraphQLError::InternalGraphQLError(errors.to_string()))
-    } else {
-        Ok(r.data.expect("GraphQL result did not have data field"))
+    match r {
+        GraphQLResponse::Data { data } => Ok(serde_json::from_value(data)?),
+        GraphQLResponse::Error { errors } => Err(GraphQLError::InternalGraphQLError(errors)),
     }
-}
-
-#[derive(Deserialize)]
-struct InternalGraphQLResponse<T> {
-    data: Option<T>,
-    errors: Option<serde_json::Value>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

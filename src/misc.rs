@@ -60,15 +60,8 @@ impl<'de, T: DeserializeOwned> Deserialize<'de> for GzippedJSON<T> {
         D: serde::Deserializer<'de>,
     {
         let bytes = <serde_bytes::ByteBuf>::deserialize(deserializer)?;
-        let mut writer = Vec::new();
-        let mut decoder = GzDecoder::new(writer);
-
-        decoder
-            .write_all(&bytes)
-            .map_err(serde::de::Error::custom)?;
-        writer = decoder.finish().map_err(serde::de::Error::custom)?;
         Ok(GzippedJSON(
-            serde_json::from_slice(&writer).map_err(serde::de::Error::custom)?,
+            decompress(&bytes).map_err(serde::de::Error::custom)?,
         ))
     }
 }
@@ -114,9 +107,6 @@ pub fn decompress<T: DeserializeOwned>(input: &[u8]) -> Result<T, DecompressErro
 
     // try to base64 decode, and if that fails, then just try to proceed.
     // If base64 encoded the input includes explicit '"' which we want to remove
-
-    let input = base64::decode(&input[1..input.len() - 1]).unwrap_or_else(|_| input.to_vec());
-
     decoder.write_all(&input)?;
     writer = decoder.finish()?;
     Ok(serde_json::from_slice(&writer)?)
@@ -142,15 +132,14 @@ mod tests {
     #[test]
     fn test_decompress() {
         let input = [
-            34, 72, 52, 115, 73, 65, 65, 65, 65, 65, 65, 65, 65, 65, 52, 117, 117, 86, 107, 112,
-            74, 76, 69, 108, 85, 115, 113, 112, 87, 75, 105, 48, 65, 115, 108, 73, 100, 99, 120,
-            75, 76, 99, 107, 72, 99, 122, 66, 81, 108, 75, 121, 85, 76, 115, 120, 81, 68, 83, 49,
-            78, 106, 65, 49, 50, 68, 82, 70, 77, 84, 88, 85, 80, 68, 49, 71, 84, 100, 74, 68, 80,
-            76, 78, 78, 51, 107, 78, 75, 79, 48, 112, 66, 82, 106, 111, 53, 82, 85, 99, 119, 79,
-            108, 50, 116, 114, 97, 87, 65, 65, 57, 116, 83, 56, 84, 83, 65, 65, 65, 65, 65, 61, 61,
-            34,
+            72, 52, 115, 73, 65, 65, 65, 65, 65, 65, 65, 65, 65, 52, 117, 117, 86, 107, 112, 74,
+            76, 69, 108, 85, 115, 113, 112, 87, 75, 105, 48, 65, 115, 108, 73, 100, 99, 120, 75,
+            76, 99, 107, 72, 99, 122, 66, 81, 108, 75, 121, 85, 76, 115, 120, 81, 68, 83, 49, 78,
+            106, 65, 49, 50, 68, 82, 70, 77, 84, 88, 85, 80, 68, 49, 71, 84, 100, 74, 68, 80, 76,
+            78, 78, 51, 107, 78, 75, 79, 48, 112, 66, 82, 106, 111, 53, 82, 85, 99, 119, 79, 108,
+            50, 116, 114, 97, 87, 65, 65, 57, 116, 83, 56, 84, 83, 65, 65, 65, 65, 65, 61, 61,
         ];
-        let x: serde_json::Value = decompress(&input).unwrap();
+        let x: serde_json::Value = decompress(&base64::decode(input).unwrap()).unwrap();
         let id = x.as_array().unwrap()[0]
             .get("data")
             .unwrap()
