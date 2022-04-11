@@ -2,8 +2,8 @@ use aws_sdk_lambda::model::InvocationType;
 use aws_sdk_lambda::types::Blob;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use serde::Deserializer;
 use serde::Serialize;
+use serde_with::serde_as;
 
 use super::GraphQLError;
 
@@ -15,18 +15,11 @@ pub struct GatewayGraphQLRequestBody<V> {
     pub userpool_id: String,
 }
 
+#[serde_as]
 #[derive(Deserialize, Debug)]
 struct GatewayGraphQLResponse<T: DeserializeOwned> {
-    #[serde(deserialize_with = "stringified_json")]
+    #[serde_as(as = "serde_with::json::JsonString")]
     body: graphql_client::Response<T>,
-}
-
-fn stringified_json<'de, D, T: DeserializeOwned>(deserializer: D) -> Result<T, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let str = String::deserialize(deserializer)?;
-    serde_json::from_str(&str).map_err(serde::de::Error::custom)
 }
 
 /// Invokes a graphql query against an the gateway AWS lambda, i.e. ms-graphql-gateway.
