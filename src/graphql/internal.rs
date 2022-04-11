@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use aws_sdk_lambda::model::InvocationType;
 use aws_sdk_lambda::types::Blob;
 use serde::de::DeserializeOwned;
@@ -6,6 +8,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::misc::{compress, decompress};
+use crate::types::PeripheralId;
 use serde_json::json;
 
 use super::GraphQLError;
@@ -13,7 +16,21 @@ use super::GraphQLError;
 pub struct GraphQLRequestBody {
     pub query: String,
     pub variables: Value,
-    pub context: Value,
+    pub context: GraphqlContext,
+}
+
+#[derive(Serialize)]
+/// This struct purely exists to hide the weird extra `graphqlContext` layer in context that the API expects
+struct GraphQLRequestBodyToSend {
+    pub query: String,
+    pub variables: Value,
+    pub context: GraphqlContextWrapper,
+}
+
+#[derive(Serialize)]
+struct GraphqlContextWrapper {
+    #[serde(rename = "graphqlContext")]
+    pub graphql_context: GraphqlContext,
 }
 
 /// Invokes a graphql query against an *internal* AWS lambda, e.g. ms-graphql-devices.
@@ -24,6 +41,13 @@ pub async fn internal_graphql_request<R: DeserializeOwned>(
     graphql: GraphQLRequestBody,
     lambda_function_name: String,
 ) -> Result<R, GraphQLError> {
+    let graphql = GraphQLRequestBodyToSend {
+        query: graphql.query,
+        variables: graphql.variables,
+        context: GraphqlContextWrapper {
+            graphql_context: graphql.context,
+        },
+    };
     let body = serde_json::to_string(&graphql)?;
     let payload = vec![json!({ "body": body })];
     let payload = compress(payload)?;
@@ -66,4 +90,98 @@ pub async fn internal_graphql_request<R: DeserializeOwned>(
 struct InternalGraphQLResponse<T> {
     data: Option<T>,
     errors: Option<serde_json::Value>,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+/// Based on https://github.com/BlackbirdHQ/module-graphql-service/blob/a096efdd573396a6cfa869bb9c44df968d941f4b/src/types.ts#L24
+pub struct GraphqlContext {
+    #[serde(rename = "defaultLanguage")]
+    default_language: String,
+    language: String,
+    #[serde(rename = "groupIds")]
+    group_ids: HashSet<String>,
+    #[serde(rename = "lineIds")]
+    line_ids: HashSet<String>,
+    #[serde(rename = "peripheralIds")]
+    peripheral_ids: HashSet<PeripheralId>,
+    #[serde(rename = "userPools")]
+    user_pools: Vec<String>,
+    #[serde(rename = "userSub")]
+    user_sub: String,
+    #[serde(rename = "userPool")]
+    user_pool: String,
+    #[serde(rename = "requiredBy")]
+    required_by: Option<Required>,
+    #[serde(rename = "requires")]
+    requires: Option<Required>,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+struct Required {
+    #[serde(rename = "lineIds")]
+    line_ids: HashSet<String>,
+    #[serde(rename = "peripheralIds")]
+    peripheral_ids: HashSet<PeripheralId>,
+}
+
+impl GraphqlContext {
+    pub fn new(user_pool: String) -> Self {
+        GraphqlContext {
+            default_language: Default::default(),
+            language: Default::default(),
+            group_ids: Default::default(),
+            line_ids: Default::default(),
+            peripheral_ids: Default::default(),
+            user_pools: Default::default(),
+            user_sub: Default::default(),
+            user_pool,
+            required_by: Default::default(),
+            requires: Default::default(),
+        }
+    }
+
+    /// Get a reference to the graphql context's user pool.
+    pub fn user_pool(&self) -> &str {
+        self.user_pool.as_ref()
+    }
+
+    pub fn allow_line_id(&mut self, line_id: String) {
+        self.line_ids.insert(line_id);
+    }
+
+    pub fn disallow_line_id(&mut self, line_id: String) {
+        self.line_ids.remove(&line_id);
+    }
+
+    pub fn line_access_allowed(&self, line_id: &str) -> bool {
+        self.line_ids.contains(line_id)
+    }
+
+    // TODO extend with accessor methods as neccessary
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+
+    use super::GraphqlContext;
+
+    #[test]
+    fn deserialize_graphql_context() {
+        let json = r#"{
+            "lineIds": ["1", "2", "1"], 
+            "userPool":"asd", 
+            "defaultLanguage": "en",
+            "language": "de",
+            "groupIds": ["asd"],
+            "peripheralIds": ["1-2"],
+            "userPools": ["a"],
+            "userSub": "asd"
+        }"#;
+        let c: GraphqlContext = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            c.line_ids,
+            HashSet::from_iter(["1".to_string(), "2".to_string()])
+        )
+    }
 }
