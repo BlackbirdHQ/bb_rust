@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use serde::de::Error as SerdeError;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PeripheralId {
     uuid: String,
     index: String,
