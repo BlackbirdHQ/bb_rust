@@ -6,7 +6,6 @@ use serde::Deserializer;
 use serde::Serialize;
 
 use super::GraphQLError;
-use super::GraphQLResponse;
 
 #[derive(Serialize)]
 pub struct GatewayGraphQLRequestBody<V> {
@@ -17,9 +16,9 @@ pub struct GatewayGraphQLRequestBody<V> {
 }
 
 #[derive(Deserialize, Debug)]
-struct GatewayGraphQLResponse {
+struct GatewayGraphQLResponse<T: DeserializeOwned> {
     #[serde(deserialize_with = "stringified_json")]
-    body: GraphQLResponse,
+    body: graphql_client::Response<T>,
 }
 
 fn stringified_json<'de, D, T: DeserializeOwned>(deserializer: D) -> Result<T, D::Error>
@@ -38,7 +37,7 @@ pub async fn gateway_graphql_request<V: Serialize, R: DeserializeOwned>(
     lambda: &aws_sdk_lambda::Client,
     graphql: &GatewayGraphQLRequestBody<V>,
     gateway_lambda_function_name: String,
-) -> Result<R, GraphQLError> {
+) -> Result<graphql_client::Response<R>, GraphQLError> {
     let response = lambda
         .invoke()
         .function_name(gateway_lambda_function_name)
@@ -59,11 +58,6 @@ pub async fn gateway_graphql_request<V: Serialize, R: DeserializeOwned>(
 
     let payload = response.payload.ok_or(GraphQLError::NoResponsePayload)?;
 
-    // Try to parse the GraphQL result
-    let res: GatewayGraphQLResponse = serde_json::from_slice(payload.as_ref())?;
-
-    match res.body {
-        GraphQLResponse::Data { data } => Ok(serde_json::from_value(data)?),
-        GraphQLResponse::Error { errors } => Err(GraphQLError::InternalGraphQLError(errors)),
-    }
+    let res: GatewayGraphQLResponse<R> = serde_json::from_slice(payload.as_ref())?;
+    Ok(res.body)
 }

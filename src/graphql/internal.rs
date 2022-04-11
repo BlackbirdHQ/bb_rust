@@ -4,26 +4,24 @@ use aws_sdk_lambda::model::InvocationType;
 use aws_sdk_lambda::types::Blob;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
-use crate::graphql::GraphQLResponse;
 use crate::misc::{compress, decompress};
 use crate::types::PeripheralId;
 use serde_json::json;
 
 use super::GraphQLError;
 #[derive(Serialize)]
-pub struct GraphQLRequestBody {
+pub struct GraphQLRequestBody<V> {
     pub query: String,
-    pub variables: Value,
+    pub variables: V,
     pub context: GraphqlContext,
 }
 
 #[derive(Serialize)]
 /// This struct purely exists to hide the weird extra `graphqlContext` layer in context that the API expects
-struct GraphQLRequestBodyToSend {
+struct GraphQLRequestBodyToSend<V> {
     pub query: String,
-    pub variables: Value,
+    pub variables: V,
     pub context: GraphqlContextWrapper,
 }
 
@@ -36,11 +34,11 @@ struct GraphqlContextWrapper {
 /// Invokes a graphql query against an *internal* AWS lambda, e.g. ms-graphql-devices.
 ///
 /// **Note**: Do not use this method for querying the public-facing ms-graphql-gateway.
-pub async fn internal_graphql_request<R: DeserializeOwned>(
+pub async fn internal_graphql_request<V: Serialize, R: DeserializeOwned>(
     lambda: &aws_sdk_lambda::client::Client,
-    graphql: GraphQLRequestBody,
+    graphql: GraphQLRequestBody<V>,
     lambda_function_name: String,
-) -> Result<R, GraphQLError> {
+) -> Result<graphql_client::Response<R>, GraphQLError> {
     let graphql = GraphQLRequestBodyToSend {
         query: graphql.query,
         variables: graphql.variables,
@@ -74,12 +72,8 @@ pub async fn internal_graphql_request<R: DeserializeOwned>(
     // The format of the payload received is "<base64>" (the quotation marks are included in the payload).
     // We "parse" the string by removing the quotation marks, and then base64 decode it, before decompressing it.
     let base64_decoded = base64::decode(&payload.as_ref()[1..payload.as_ref().len() - 1]).unwrap();
-    let [r]: [GraphQLResponse; 1] = decompress(&base64_decoded)?;
-
-    match r {
-        GraphQLResponse::Data { data } => Ok(serde_json::from_value(data)?),
-        GraphQLResponse::Error { errors } => Err(GraphQLError::InternalGraphQLError(errors)),
-    }
+    let [r]: [graphql_client::Response<R>; 1] = decompress(&base64_decoded)?;
+    Ok(r)
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
