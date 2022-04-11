@@ -1,4 +1,4 @@
-use bb_rust::graphql::{internal_graphql_request, GraphQLRequestBody};
+use bb_rust::graphql::{internal_graphql_request, GraphQLRequestBody, GraphqlContext};
 use serde_json::json;
 
 #[tokio::main]
@@ -14,13 +14,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let graphql = GraphQLRequestBody {
         query: query.to_string(),
         variables: json!(null),
-        context: json!({
-            "graphqlContext": {
-                "peripheralIds": [],
-                "defaultLanguage": "en",
-                "userPool": "eu-west-1_lu59lbvt7"
-            }
-        }),
+        context: GraphqlContext::new("eu-west-1_lu59lbvt7".to_string())
+            .set_default_language("en".to_string()),
     };
 
     let lambda = aws_sdk_lambda::Client::new(&aws_config::load_from_env().await);

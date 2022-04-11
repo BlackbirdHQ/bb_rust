@@ -107,7 +107,7 @@ pub fn decompress<T: DeserializeOwned>(input: &[u8]) -> Result<T, DecompressErro
 
     // try to base64 decode, and if that fails, then just try to proceed.
     // If base64 encoded the input includes explicit '"' which we want to remove
-    decoder.write_all(&input)?;
+    decoder.write_all(input)?;
     writer = decoder.finish()?;
     Ok(serde_json::from_slice(&writer)?)
 }

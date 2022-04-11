@@ -129,12 +129,14 @@ impl GraphqlContext {
         self.user_pool.as_ref()
     }
 
-    pub fn allow_line_id(&mut self, line_id: String) {
+    pub fn allow_line_id(mut self, line_id: String) -> Self {
         self.line_ids.insert(line_id);
+        self
     }
 
-    pub fn disallow_line_id(&mut self, line_id: String) {
+    pub fn disallow_line_id(mut self, line_id: String) -> Self {
         self.line_ids.remove(&line_id);
+        self
     }
 
     pub fn line_access_allowed(&self, line_id: &str) -> bool {
@@ -142,6 +144,12 @@ impl GraphqlContext {
     }
 
     // TODO extend with accessor methods as neccessary
+
+    /// Set the graphql context's default language.
+    pub fn set_default_language(mut self, default_language: String) -> Self {
+        self.default_language = default_language;
+        self
+    }
 }
 
 #[cfg(test)]

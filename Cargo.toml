@@ -7,6 +7,10 @@ edition = "2021"
 name = "gateway_graphql_request"
 required-features = ["graphql"]
 
+[[example]]
+name = "internal_graphql_request"
+required-features = ["graphql", "types"]
+
 [dependencies]
 base64 = {version = "0.13", optional = true }
 aws-sdk-lambda = { version = "0.9", optional = true }
