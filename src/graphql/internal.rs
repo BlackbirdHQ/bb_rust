@@ -4,10 +4,10 @@ use aws_sdk_lambda::model::InvocationType;
 use aws_sdk_lambda::types::Blob;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
 use crate::misc::{compress, decompress};
 use crate::types::PeripheralId;
-use serde_json::json;
 
 use super::GraphQLError;
 #[derive(Serialize)]
@@ -31,6 +31,13 @@ struct GraphqlContextWrapper {
     pub graphql_context: GraphqlContext,
 }
 
+#[serde_as]
+#[derive(Serialize, Debug)]
+struct PayloadToSend<T: Serialize> {
+    #[serde_as(as = "serde_with::json::JsonString")]
+    body: T,
+}
+
 /// Invokes a graphql query against an *internal* AWS lambda, e.g. ms-graphql-devices.
 ///
 /// **Note**: Do not use this method for querying the public-facing ms-graphql-gateway.
@@ -46,8 +53,7 @@ pub async fn internal_graphql_request<V: Serialize, R: DeserializeOwned>(
             graphql_context: graphql.context,
         },
     };
-    let body = serde_json::to_string(&graphql)?;
-    let payload = vec![json!({ "body": body })];
+    let payload = PayloadToSend { body: graphql };
     let payload = compress(payload)?;
     let payload = format!("\"{}\"", base64::encode(payload));
 

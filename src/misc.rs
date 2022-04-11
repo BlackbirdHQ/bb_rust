@@ -87,7 +87,7 @@ pub enum CompressError {
 /// Gzip compress that is typically used together with base64 encoding to minimize data sent/stored
 pub fn compress<T: Serialize>(input: T) -> Result<Vec<u8>, CompressError> {
     let mut e = GzEncoder::new(Vec::new(), Compression::default());
-    e.write_all(serde_json::to_string(&input)?.as_bytes())?;
+    e.write_all(&serde_json::to_vec(&input)?)?;
     Ok(e.finish()?)
 }
 
