@@ -9,7 +9,7 @@ required-features = ["graphql"]
 
 [[example]]
 name = "internal_graphql_request"
-required-features = ["graphql", "types"]
+required-features = ["graphql"]
 
 [dependencies]
 base64 = {version = "0.13", optional = true }
@@ -41,4 +41,4 @@ default = []
 dynamodb = ["dynomite", "rusoto_dynamodbstreams", "serde"]
 misc = ["thiserror", "flate2", "base64", "env_logger", "log", "serde_bytes", "serde", "serde_json"]
 types = ["serde"]
-graphql = ["misc", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client"]
+graphql = ["misc", "types", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client"]
