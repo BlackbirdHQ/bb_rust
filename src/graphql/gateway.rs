@@ -2,9 +2,11 @@ use aws_sdk_lambda::model::InvocationType;
 use aws_sdk_lambda::types::Blob;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use serde::Deserializer;
 use serde::Serialize;
 
 use super::GraphQLError;
+use super::GraphQLResponse;
 
 #[derive(Serialize)]
 pub struct GatewayGraphQLRequestBody<V> {
@@ -14,11 +16,18 @@ pub struct GatewayGraphQLRequestBody<V> {
     pub userpool_id: String,
 }
 
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum GatewayGraphQLResponse {
-    Data { body: serde_json::Value },
-    Error { errors: serde_json::Value },
+#[derive(Deserialize, Debug)]
+struct GatewayGraphQLResponse {
+    #[serde(deserialize_with = "stringified_json")]
+    body: GraphQLResponse,
+}
+
+fn stringified_json<'de, D, T: DeserializeOwned>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let str = String::deserialize(deserializer)?;
+    serde_json::from_str(&str).map_err(serde::de::Error::custom)
 }
 
 /// Invokes a graphql query against an the gateway AWS lambda, i.e. ms-graphql-gateway.
@@ -48,20 +57,13 @@ pub async fn gateway_graphql_request<V: Serialize, R: DeserializeOwned>(
         });
     }
 
-    // Try to parse the GraphQL result
-    let res: GatewayGraphQLResponse = serde_json::from_slice(
-        response
-            .payload
-            .ok_or(GraphQLError::NoResponsePayload)?
-            .as_ref(),
-    )?;
+    let payload = response.payload.ok_or(GraphQLError::NoResponsePayload)?;
 
-    match res {
-        GatewayGraphQLResponse::Data { body } => Ok(serde_json::from_str(
-            body.as_str().expect("GraphQL body must be string"),
-        )?),
-        GatewayGraphQLResponse::Error { errors } => {
-            Err(GraphQLError::InternalGraphQLError(errors.to_string()))
-        }
+    // Try to parse the GraphQL result
+    let res: GatewayGraphQLResponse = serde_json::from_slice(payload.as_ref())?;
+
+    match res.body {
+        GraphQLResponse::Data { data } => Ok(serde_json::from_value(data)?),
+        GraphQLResponse::Error { errors } => Err(GraphQLError::InternalGraphQLError(errors)),
     }
 }
