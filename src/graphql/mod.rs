@@ -7,7 +7,7 @@ mod gateway;
 mod internal;
 
 pub use gateway::{gateway_graphql_request, GatewayGraphQLRequestBody};
-pub use internal::{internal_graphql_request, GraphQLRequestBody};
+pub use internal::{internal_graphql_request, GraphQLRequestBody, GraphqlContext};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Error, Debug)]
