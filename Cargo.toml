@@ -22,6 +22,7 @@ rusoto_dynamodbstreams = { version = "0.47.0", default_features = false, feature
 serde = { version = "1", features = ["derive"], optional = true }
 serde_bytes = {version = "0.11", optional = true }
 serde_json = {version = "1", optional = true }
+serde_with = { version = "1", features = ["json"], optional = true}
 thiserror = { version = "1", optional = true }
 lazy_static = "1.4.0"
 graphql_client = { version = "0.10", optional = true }
@@ -41,4 +42,4 @@ default = []
 dynamodb = ["dynomite", "rusoto_dynamodbstreams", "serde"]
 misc = ["thiserror", "flate2", "base64", "env_logger", "log", "serde_bytes", "serde", "serde_json"]
 types = ["serde"]
-graphql = ["misc", "types", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client"]
+graphql = ["misc", "types", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client", "serde_with"]
