@@ -9,6 +9,9 @@ pub struct PeripheralId {
 }
 
 impl PeripheralId {
+    pub fn new(uuid: String, index: String) -> PeripheralId {
+        PeripheralId { uuid, index }
+    }
     pub fn uuid(&self) -> &str {
         &self.uuid
     }
