@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use serde::de::Error as SerdeError;
+use thiserror::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PeripheralId {
@@ -8,9 +9,19 @@ pub struct PeripheralId {
     index: String,
 }
 
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("UUID must not contain '-'")]
+    MalformedUUID,
+}
+
 impl PeripheralId {
-    pub fn new(uuid: String, index: String) -> PeripheralId {
-        PeripheralId { uuid, index }
+    pub fn new(uuid: String, index: String) -> Result<PeripheralId, Error> {
+        if uuid.contains('-') {
+            Err(Error::MalformedUUID)
+        } else {
+            Ok(PeripheralId { uuid, index })
+        }
     }
     pub fn uuid(&self) -> &str {
         &self.uuid
