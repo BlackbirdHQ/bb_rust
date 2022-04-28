@@ -13,12 +13,26 @@ pub struct PeripheralId {
 pub enum Error {
     #[error("UUID must not contain '-'")]
     MalformedUUID,
+    #[error("UUID must not be empty")]
+    EmptyUUID,
+    #[error("Index must not be empty")]
+    EmptyIndex,
+    #[error("Index must not contain '#'")]
+    IndexContainsPound,
+    #[error("{0}")]
+    Generic(String),
 }
 
 impl PeripheralId {
     pub fn new(uuid: String, index: String) -> Result<PeripheralId, Error> {
-        if uuid.contains('-') {
+        if uuid.is_empty() {
+            Err(Error::EmptyUUID)
+        } else if uuid.contains('-') {
             Err(Error::MalformedUUID)
+        } else if index.contains('#') {
+            Err(Error::IndexContainsPound)
+        } else if index.is_empty() {
+            Err(Error::EmptyIndex)
         } else {
             Ok(PeripheralId { uuid, index })
         }
@@ -42,19 +56,16 @@ impl<'de> serde::Deserialize<'de> for PeripheralId {
 }
 
 impl FromStr for PeripheralId {
-    type Err = String;
+    type Err = Error;
 
     fn from_str(str: &str) -> Result<Self, Self::Err> {
         let split = str.split_once('-');
         match split {
-            Some((uuid, index)) if !uuid.is_empty() && !index.is_empty() => Ok(Self {
-                uuid: uuid.to_string(),
-                index: index.to_string(),
-            }),
-            _ => Err(format!(
+            Some((uuid, index)) => PeripheralId::new(uuid.to_string(), index.to_string()),
+            _ => Err(Error::Generic(format!(
                 "PeripheralId is expected to be of form `<uuid>-<index>`, but was `{}`",
                 str
-            )),
+            ))),
         }
     }
 }
@@ -84,7 +95,7 @@ mod tests {
     fn is_not_peripheral_id() {
         let inputs = ["asd", "1_23", "-hej", "-", "asd-"];
         for i in inputs {
-            assert!(PeripheralId::from_str(i).is_err());
+            assert!(PeripheralId::from_str(i).is_err(), "{i}");
         }
     }
 
