@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
 use crate::misc::{compress, decompress};
-use crate::types::PeripheralId;
+use crate::types::peripheral_id::PeripheralId;
 
 use super::GraphQLError;
 #[derive(Serialize)]
