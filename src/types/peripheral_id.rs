@@ -9,7 +9,7 @@ pub struct PeripheralId {
     index: String,
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum Error {
     #[error("UUID must not contain '-'")]
     MalformedUUID,
