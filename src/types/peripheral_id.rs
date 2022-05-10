@@ -85,6 +85,9 @@ impl Display for PeripheralId {
     }
 }
 
+#[cfg(feature = "graphql")]
+async_graphql::scalar!(PeripheralId, "PeripheralId", "Format: <uuid>-<index>");
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
