@@ -82,6 +82,56 @@ pub async fn internal_graphql_request<V: Serialize, R: DeserializeOwned>(
     Ok(r)
 }
 
+/// Invokes a batch of graphql queries against an *internal* AWS lambda, e.g. ms-graphql-devices.
+///
+/// **Note**: Do not use this method for querying the public-facing ms-graphql-gateway.
+pub async fn batch_internal_graphql_request<V: Serialize, R: DeserializeOwned>(
+    lambda: &aws_sdk_lambda::client::Client,
+    graphql_requests: Vec<GraphQLRequestBody<V>>,
+    lambda_function_name: String,
+) -> Result<Vec<graphql_client::Response<R>>, GraphQLError> {
+    let payload = graphql_requests
+        .into_iter()
+        .map(|request| {
+            let graphql = GraphQLRequestBodyToSend {
+                query: request.query,
+                variables: request.variables,
+                context: GraphqlContextWrapper {
+                    graphql_context: request.context,
+                },
+            };
+
+            PayloadToSend { body: graphql }
+        })
+        .collect::<Vec<_>>();
+    let payload = compress(payload)?;
+    let payload = format!("\"{}\"", base64::encode(payload));
+
+    let response = lambda
+        .invoke()
+        .function_name(lambda_function_name)
+        .invocation_type(InvocationType::RequestResponse)
+        .payload(Blob::new(payload))
+        .send()
+        .await?;
+    if let Some(err) = response.function_error {
+        return Err(GraphQLError::LambdaFunctionError(err));
+    }
+    if response.status_code != 200 {
+        return Err(GraphQLError::LambdaFunctionBadStatusCode {
+            payload: format!("{:?}", response.payload),
+            status_code: response.status_code,
+        });
+    }
+    let payload = response.payload.ok_or(GraphQLError::NoResponsePayload)?;
+
+    // The format of the payload received is "<base64>" (the quotation marks are included in the payload).
+    // We "parse" the string by removing the quotation marks, and then base64 decode it, before decompressing it.
+    let base64_decoded = base64::decode(&payload.as_ref()[1..payload.as_ref().len() - 1]).unwrap();
+    let r: Vec<graphql_client::Response<R>> = decompress(&base64_decoded)?;
+    Ok(r)
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 /// Based on https://github.com/BlackbirdHQ/module-graphql-service/blob/a096efdd573396a6cfa869bb9c44df968d941f4b/src/types.ts#L24
 pub struct GraphqlContext {
