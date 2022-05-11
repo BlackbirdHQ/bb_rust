@@ -149,6 +149,20 @@ impl GraphqlContext {
         self.line_ids.contains(line_id)
     }
 
+    pub fn allow_peripheral_id(mut self, peripheral_id: PeripheralId) -> Self {
+        self.peripheral_ids.insert(peripheral_id);
+        self
+    }
+
+    pub fn disallow_peripheral_id(mut self, peripheral_id: PeripheralId) -> Self {
+        self.peripheral_ids.remove(&peripheral_id);
+        self
+    }
+
+    pub fn peripheral_access_allowed(&self, peripheral_id: &PeripheralId) -> bool {
+        self.peripheral_ids.contains(peripheral_id)
+    }
+
     // TODO extend with accessor methods as neccessary
 
     /// Set the graphql context's default language.
