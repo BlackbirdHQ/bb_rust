@@ -1,5 +1,9 @@
 use lazy_static::lazy_static;
-use std::io::Write;
+use std::{
+    cell::RefCell,
+    io::Write,
+    sync::{Arc, Mutex},
+};
 
 use flate2::{
     write::{GzDecoder, GzEncoder},
@@ -24,9 +28,9 @@ macro_rules! try_block {
     }}
 }
 
-pub fn setup_aws_lambda_logging() {
+pub fn setup_aws_lambda_logging(request_id: Arc<Mutex<RefCell<String>>>) {
     env_logger::builder()
-        .format(|buf, record| {
+        .format(move |buf, record| {
             // AWS Cloudwatch logs show a new line for each '\n'
             // so replace that with '\r'
 
@@ -40,7 +44,9 @@ pub fn setup_aws_lambda_logging() {
 
             writeln!(
                 buf,
-                "{} - {}: {}",
+                "{}\t{}\t{}\t{}",
+                // Prefix every log with request_id
+                request_id.lock().unwrap().borrow(),
                 record.target(),
                 record.level(),
                 reshaped_message
