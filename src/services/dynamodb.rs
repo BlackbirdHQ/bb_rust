@@ -1,9 +1,17 @@
 use aws_sdk_dynamodb::{config::Builder as ConfigBuilder, Client as DynamoDBClient, Endpoint};
+use aws_types::region::Region;
 use http::Uri;
 use tokio::sync::OnceCell;
 
-async fn dynamodb_client() -> DynamoDBClient {
-    let config = aws_config::load_from_env().await;
+async fn dynamodb_client(region: Option<&'static str>) -> DynamoDBClient {
+    let config_builder = aws_config::from_env();
+
+    let config = match region {
+        Some(region) => config_builder.region(Region::new(region)),
+        None => config_builder,
+    }
+    .load()
+    .await;
 
     match std::env::var("TARGET").map(|target| target.eq_ignore_ascii_case("local")) {
         Ok(true) => {
@@ -21,6 +29,6 @@ async fn dynamodb_client() -> DynamoDBClient {
 
 pub static CLIENT: OnceCell<DynamoDBClient> = OnceCell::const_new();
 
-pub async fn dynamodb<'client>() -> &'client DynamoDBClient {
-    CLIENT.get_or_init(dynamodb_client).await
+pub async fn dynamodb<'client>(region: Option<&'static str>) -> &'client DynamoDBClient {
+    CLIENT.get_or_init(|| dynamodb_client(region)).await
 }
