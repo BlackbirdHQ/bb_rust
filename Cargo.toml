@@ -13,8 +13,17 @@ required-features = ["graphql"]
 
 [dependencies]
 base64 = {version = "0.13", optional = true }
-aws-sdk-lambda = { version = "0.9", optional = true }
+aws-config = { version = "0.9", optional = true }
+aws-sdk-cloudformation = { version = "0.9", optional = true }
+aws-sdk-cognitoidentityprovider = { version = "0.9", optional = true }
+aws-sdk-dynamodb = { version = "0.9", optional = true }
 aws-sdk-dynamodbstreams = { version = "0.9", optional = true }
+aws-sdk-lambda = { version = "0.9", optional = true }
+aws-sdk-s3 = { version = "0.9", optional = true }
+aws-sdk-secretsmanager = { version = "0.9", optional = true }
+aws-sdk-ssm = { version = "0.9", optional = true }
+aws-sdk-sts = { version = "0.9", optional = true }
+aws-types = { version = "0.9", optional = true }
 env_logger = {version = "0.9", optional = true }
 flate2 = { version = "1", optional = true }
 log = {version = "0.4", optional = true}
@@ -26,9 +35,10 @@ thiserror = { version = "1", optional = true }
 lazy_static = "1.4.0"
 graphql_client = { version = "0.10", optional = true }
 async-graphql = { version = "3.0", optional = true }
+tokio = { optional = true, version = "1", default_features = false, features = ["parking_lot"] }
+http = { optional = true, version = "0.2.8" }
 
 [dev-dependencies]
-tokio = {version = "1", features = ["macros", "rt-multi-thread"] }
 anyhow = "1"
 aws-config = "0.9"
 cargo-husky = { version = "1.5.0", default_features = false, features = ["precommit-hook", "run-cargo-check", "run-cargo-clippy", "run-cargo-fmt"] }
@@ -39,6 +49,21 @@ aws-sdk-dynamodb = "0.9"
 
 [features]
 default = []
+services = [
+  "aws-config",
+  "aws-sdk-cloudformation",
+  "aws-sdk-cognitoidentityprovider",
+  "aws-sdk-dynamodb",
+  "aws-sdk-dynamodbstreams",
+  "aws-sdk-lambda",
+  "aws-sdk-s3",
+  "aws-sdk-secretsmanager",
+  "aws-sdk-ssm",
+  "aws-sdk-sts",
+  "aws-types",
+  "http",
+  "tokio",
+]
 misc = ["thiserror", "flate2", "base64", "env_logger", "log", "serde_bytes", "serde", "serde_json"]
 types = ["serde", "thiserror"]
 graphql = ["misc", "types", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client", "serde_with", "async-graphql"]
