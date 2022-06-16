@@ -1,9 +1,16 @@
+#[cfg(feature = "services_cloudformation")]
 pub mod cloudformation;
-pub mod cognito;
+#[cfg(feature = "services_cognitoidentityprovider")]
+pub mod cognitoidentityprovider;
+#[cfg(feature = "services_dynamodb")]
 pub mod dynamodb;
+#[cfg(feature = "services_s3")]
 pub mod s3;
-pub mod secrets_manager;
+#[cfg(feature = "services_secretsmanager")]
+pub mod secretsmanager;
+#[cfg(feature = "services_ssm")]
 pub mod ssm;
+#[cfg(feature = "services_sts")]
 pub mod sts;
 
 use aws_types::region::Region;

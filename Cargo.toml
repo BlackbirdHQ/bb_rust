@@ -49,19 +49,54 @@ tokio = {version = "1", features = ["macros", "rt-multi-thread"] }
 
 [features]
 default = []
-services = [
+services_cloudformation = [
   "aws-config",
   "aws-sdk-cloudformation",
+  "aws-types",
+  "tokio",
+]
+services_cognitoidentityprovider = [
+  "aws-config",
   "aws-sdk-cognitoidentityprovider",
+  "aws-types",
+  "tokio",
+]
+services_dynamodb = [
+  "aws-config",
   "aws-sdk-dynamodb",
   "aws-sdk-dynamodbstreams",
-  "aws-sdk-lambda",
-  "aws-sdk-s3",
-  "aws-sdk-secretsmanager",
-  "aws-sdk-ssm",
-  "aws-sdk-sts",
   "aws-types",
   "http",
+  "tokio",
+]
+services_lambda = [
+  "aws-config",
+  "aws-sdk-lambda",
+  "aws-types",
+  "tokio",
+]
+services_s3 = [
+  "aws-config",
+  "aws-sdk-s3",
+  "aws-types",
+  "tokio",
+]
+services_secretsmanager = [
+  "aws-config",
+  "aws-sdk-secretsmanager",
+  "aws-types",
+  "tokio",
+]
+services_ssm = [
+  "aws-config",
+  "aws-sdk-ssm",
+  "aws-types",
+  "tokio",
+]
+services_sts = [
+  "aws-config",
+  "aws-sdk-sts",
+  "aws-types",
   "tokio",
 ]
 misc = ["thiserror", "flate2", "base64", "env_logger", "log", "serde_bytes", "serde", "serde_json"]
