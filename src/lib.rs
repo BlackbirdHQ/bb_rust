@@ -7,10 +7,11 @@ pub mod misc;
     feature = "services_cognitoidentityprovider",
     feature = "services_dynamodb",
     feature = "services_lambda",
+    feature = "services_organizations",
     feature = "services_s3",
     feature = "services_secretsmanager",
     feature = "services_ssm",
-    feature = "services_sts"
+    feature = "services_sts",
 ))]
 pub mod services;
 #[cfg(feature = "types")]

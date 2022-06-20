@@ -4,6 +4,8 @@ pub mod cloudformation;
 pub mod cognitoidentityprovider;
 #[cfg(feature = "services_dynamodb")]
 pub mod dynamodb;
+#[cfg(feature = "services_organizations")]
+pub mod organizations;
 #[cfg(feature = "services_s3")]
 pub mod s3;
 #[cfg(feature = "services_secretsmanager")]
