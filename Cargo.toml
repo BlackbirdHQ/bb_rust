@@ -78,7 +78,7 @@ services_lambda = [
 ]
 services_organizations = [
   "aws-config",
-  "aws-sdk-lambda",
+  "aws-sdk-organizations",
   "aws-types",
   "tokio",
 ]
