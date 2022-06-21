@@ -20,6 +20,10 @@ pub mod sts;
 use aws_types::region::Region;
 use aws_types::SdkConfig;
 
+// Re-export
+pub use aws_config;
+pub use aws_types;
+
 pub async fn in_region(region: Option<&'static str>) -> SdkConfig {
     let config_builder = aws_config::from_env();
 
