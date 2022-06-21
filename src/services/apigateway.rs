@@ -3,7 +3,7 @@ use aws_sdk_apigateway::Client as ApiGatewayClient;
 use tokio::sync::OnceCell;
 
 // Re-export
-pub use aws_sdk_cloudformation;
+pub use aws_sdk_apigateway;
 
 async fn apigateway_client(region: Option<&'static str>) -> ApiGatewayClient {
     ApiGatewayClient::new(&in_region(region).await)
