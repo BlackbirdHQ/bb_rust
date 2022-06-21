@@ -2,6 +2,9 @@ use crate::services::in_region;
 use aws_sdk_sts::Client as STSClient;
 use tokio::sync::OnceCell;
 
+// Re-export
+pub use aws_sdk_sts;
+
 async fn sts_client(region: Option<&'static str>) -> STSClient {
     STSClient::new(&in_region(region).await)
 }
