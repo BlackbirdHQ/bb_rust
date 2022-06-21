@@ -1,3 +1,6 @@
+#[cfg(feature = "services_apigateway")]
+pub mod apigateway;
+
 #[cfg(feature = "services_cloudformation")]
 pub mod cloudformation;
 #[cfg(feature = "services_cognitoidentityprovider")]
