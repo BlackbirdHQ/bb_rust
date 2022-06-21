@@ -2,6 +2,9 @@ use crate::services::in_region;
 use aws_sdk_lambda::Client as LambdaClient;
 use tokio::sync::OnceCell;
 
+// Re-export
+pub use aws_sdk_lambda;
+
 async fn lambda_client(region: Option<&'static str>) -> LambdaClient {
     LambdaClient::new(&in_region(region).await)
 }
