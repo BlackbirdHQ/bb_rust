@@ -3,6 +3,7 @@ pub mod graphql;
 #[cfg(feature = "misc")]
 pub mod misc;
 #[cfg(any(
+    feature = "services_apigateway",
     feature = "services_cloudformation",
     feature = "services_cognitoidentityprovider",
     feature = "services_dynamodb",

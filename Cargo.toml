@@ -1,8 +1,8 @@
 [package]
-name = "bb_rust"
-version = "0.1.0"
 edition = "2021"
+name = "bb_rust"
 resolver = "2"
+version = "0.1.0"
 
 [[example]]
 name = "gateway_graphql_request"
@@ -13,43 +13,52 @@ name = "internal_graphql_request"
 required-features = ["graphql"]
 
 [dependencies]
-base64 = {version = "0.13", optional = true }
-aws-config = { version = "0.9", optional = true }
-aws-sdk-cloudformation = { version = "0.9", optional = true }
-aws-sdk-cognitoidentityprovider = { version = "0.9", optional = true }
-aws-sdk-dynamodb = { version = "0.9", optional = true }
-aws-sdk-dynamodbstreams = { version = "0.9", optional = true }
-aws-sdk-lambda = { version = "0.9", optional = true }
-aws-sdk-organizations = { version = "0.9.0", optional = true }
-aws-sdk-s3 = { version = "0.9", optional = true }
-aws-sdk-secretsmanager = { version = "0.9", optional = true }
-aws-sdk-ssm = { version = "0.9", optional = true }
-aws-sdk-sts = { version = "0.9", optional = true }
-aws-types = { version = "0.9", optional = true }
-env_logger = {version = "0.9", optional = true }
-flate2 = { version = "1", optional = true }
-log = {version = "0.4", optional = true}
-serde = { version = "1", features = ["derive"], optional = true }
-serde_bytes = {version = "0.11", optional = true }
-serde_json = {version = "1", optional = true }
-serde_with = { version = "1", features = ["json"], optional = true}
-thiserror = { version = "1", optional = true }
+async-graphql = {version = "3.0", optional = true}
+aws-config = {version = "0.9", optional = true}
+aws-sdk-apigateway = {version = "0.9", optional = true}
+aws-sdk-cloudformation = {version = "0.9", optional = true}
+aws-sdk-cognitoidentityprovider = {version = "0.9", optional = true}
+aws-sdk-dynamodb = {version = "0.9", optional = true}
+aws-sdk-dynamodbstreams = {version = "0.9", optional = true}
+aws-sdk-lambda = {version = "0.9", optional = true}
+aws-sdk-organizations = {version = "0.9.0", optional = true}
+aws-sdk-s3 = {version = "0.9", optional = true}
+aws-sdk-secretsmanager = {version = "0.9", optional = true}
+aws-sdk-ssm = {version = "0.9", optional = true}
+aws-sdk-sts = {version = "0.9", optional = true}
+aws-types = {version = "0.9", optional = true}
+base64 = {version = "0.13", optional = true}
+env_logger = {version = "0.9", optional = true}
+flate2 = {version = "1", optional = true}
+graphql_client = {version = "0.10", optional = true}
+http = {optional = true, version = "0.2.8"}
 lazy_static = "1.4.0"
-graphql_client = { version = "0.10", optional = true }
-async-graphql = { version = "3.0", optional = true }
-tokio = { optional = true, version = "1", default_features = false, features = ["parking_lot"] }
-http = { optional = true, version = "0.2.8" }
+log = {version = "0.4", optional = true}
+serde = {version = "1", features = ["derive"], optional = true}
+serde_bytes = {version = "0.11", optional = true}
+serde_json = {version = "1", optional = true}
+serde_with = {version = "1", features = ["json"], optional = true}
+thiserror = {version = "1", optional = true}
+tokio = {optional = true, version = "1", default_features = false, features = ["parking_lot"]}
 
 [dev-dependencies]
 anyhow = "1"
 aws-config = "0.9"
 aws-sdk-dynamodb = "0.9"
-cargo-husky = { version = "1.5.0", default_features = false, features = ["precommit-hook", "run-cargo-check", "run-cargo-clippy", "run-cargo-fmt"] }
-serde_dynamo = { version = "3.0.0", features = ["aws-sdk-dynamodb+0_9"] }
-tokio = {version = "1", features = ["macros", "rt-multi-thread"] }
+cargo-husky = {version = "1.5.0", default_features = false, features = ["precommit-hook", "run-cargo-check", "run-cargo-clippy", "run-cargo-fmt"]}
+serde_dynamo = {version = "3.0.0", features = ["aws-sdk-dynamodb+0_9"]}
+tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
 
 [features]
 default = []
+graphql = ["misc", "types", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client", "serde_with", "async-graphql"]
+misc = ["thiserror", "flate2", "base64", "env_logger", "log", "serde_bytes", "serde", "serde_json"]
+services_apigateway = [
+  "aws-config",
+  "aws-sdk-apigateway",
+  "aws-types",
+  "tokio",
+]
 services_cloudformation = [
   "aws-config",
   "aws-sdk-cloudformation",
@@ -106,6 +115,4 @@ services_sts = [
   "aws-types",
   "tokio",
 ]
-misc = ["thiserror", "flate2", "base64", "env_logger", "log", "serde_bytes", "serde", "serde_json"]
 types = ["serde", "thiserror"]
-graphql = ["misc", "types", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client", "serde_with", "async-graphql"]
