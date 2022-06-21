@@ -3,6 +3,9 @@ use aws_types::region::Region;
 use http::Uri;
 use tokio::sync::OnceCell;
 
+// Re-export
+pub use aws_sdk_dynamodb;
+
 async fn dynamodb_client(region: Option<&'static str>) -> DynamoDBClient {
     let config_builder = aws_config::from_env();
 
