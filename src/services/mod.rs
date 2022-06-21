@@ -7,6 +7,8 @@ pub mod cloudformation;
 pub mod cognitoidentityprovider;
 #[cfg(feature = "services_dynamodb")]
 pub mod dynamodb;
+#[cfg(feature = "services_iot")]
+pub mod iot;
 #[cfg(feature = "services_lambda")]
 pub mod lambda;
 #[cfg(feature = "services_organizations")]

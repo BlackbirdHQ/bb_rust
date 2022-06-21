@@ -7,6 +7,7 @@ pub mod misc;
     feature = "services_cloudformation",
     feature = "services_cognitoidentityprovider",
     feature = "services_dynamodb",
+    feature = "services_iot",
     feature = "services_lambda",
     feature = "services_organizations",
     feature = "services_s3",
