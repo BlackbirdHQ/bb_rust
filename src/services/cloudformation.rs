@@ -9,10 +9,12 @@ async fn cloudformation_client(region: Option<&'static str>) -> CloudformationCl
     CloudformationClient::new(&in_region(region).await)
 }
 
-static COGNITO: OnceCell<CloudformationClient> = OnceCell::const_new();
+static CLOUDFORMATION: OnceCell<CloudformationClient> = OnceCell::const_new();
 
 pub async fn cloudformation<'client>(
     region: Option<&'static str>,
 ) -> &'client CloudformationClient {
-    COGNITO.get_or_init(|| cloudformation_client(region)).await
+    CLOUDFORMATION
+        .get_or_init(|| cloudformation_client(region))
+        .await
 }
