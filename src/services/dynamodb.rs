@@ -1,7 +1,7 @@
 use aws_sdk_dynamodb::{config::Builder as ConfigBuilder, Client as DynamoDBClient, Endpoint};
 use aws_types::region::Region;
+use cached::proc_macro::cached;
 use http::Uri;
-use tokio::sync::OnceCell;
 
 // Re-export
 pub use aws_sdk_dynamodb;
@@ -30,8 +30,7 @@ async fn dynamodb_client(region: Option<&'static str>) -> DynamoDBClient {
     }
 }
 
-pub static CLIENT: OnceCell<DynamoDBClient> = OnceCell::const_new();
-
-pub async fn dynamodb<'client>(region: Option<&'static str>) -> &'client DynamoDBClient {
-    CLIENT.get_or_init(|| dynamodb_client(region)).await
+#[cached]
+pub async fn dynamodb(region: Option<&'static str>) -> DynamoDBClient {
+    dynamodb_client(region).await
 }
