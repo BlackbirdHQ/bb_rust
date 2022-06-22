@@ -29,6 +29,7 @@ aws-sdk-ssm = {version = "0.9", optional = true}
 aws-sdk-sts = {version = "0.9", optional = true}
 aws-types = {version = "0.9", optional = true}
 base64 = {version = "0.13", optional = true}
+cached = {version = "0.34", optional = true}
 env_logger = {version = "0.9", optional = true}
 flate2 = {version = "1", optional = true}
 graphql_client = {version = "0.10", optional = true}
@@ -40,7 +41,6 @@ serde_bytes = {version = "0.11", optional = true}
 serde_json = {version = "1", optional = true}
 serde_with = {version = "1", features = ["json"], optional = true}
 thiserror = {version = "1", optional = true}
-tokio = {optional = true, version = "1", default_features = false, features = ["parking_lot"]}
 
 [dev-dependencies]
 anyhow = "1"
@@ -58,19 +58,19 @@ services_apigateway = [
   "aws-config",
   "aws-sdk-apigateway",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_cloudformation = [
   "aws-config",
   "aws-sdk-cloudformation",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_cognitoidentityprovider = [
   "aws-config",
   "aws-sdk-cognitoidentityprovider",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_dynamodb = [
   "aws-config",
@@ -78,48 +78,48 @@ services_dynamodb = [
   "aws-sdk-dynamodbstreams",
   "aws-types",
   "http",
-  "tokio",
+  "cached",
 ]
 services_iot = [
   "aws-config",
   "aws-sdk-iot",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_lambda = [
   "aws-config",
   "aws-sdk-lambda",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_organizations = [
   "aws-config",
   "aws-sdk-organizations",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_s3 = [
   "aws-config",
   "aws-sdk-s3",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_secretsmanager = [
   "aws-config",
   "aws-sdk-secretsmanager",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_ssm = [
   "aws-config",
   "aws-sdk-ssm",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 services_sts = [
   "aws-config",
   "aws-sdk-sts",
   "aws-types",
-  "tokio",
+  "cached",
 ]
 types = ["serde", "thiserror"]
