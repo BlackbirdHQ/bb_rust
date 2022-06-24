@@ -14,20 +14,20 @@ required-features = ["graphql"]
 
 [dependencies]
 async-graphql = {version = "3.0", optional = true}
-aws-config = {version = "0.9", optional = true}
-aws-sdk-apigateway = {version = "0.9", optional = true}
-aws-sdk-cloudformation = {version = "0.9", optional = true}
-aws-sdk-cognitoidentityprovider = {version = "0.9", optional = true}
-aws-sdk-dynamodb = {version = "0.9", optional = true}
-aws-sdk-dynamodbstreams = {version = "0.9", optional = true}
-aws-sdk-iot = {version = "0.9", optional = true}
-aws-sdk-lambda = {version = "0.9", optional = true}
-aws-sdk-organizations = {version = "0.9.0", optional = true}
-aws-sdk-s3 = {version = "0.9", optional = true}
-aws-sdk-secretsmanager = {version = "0.9", optional = true}
-aws-sdk-ssm = {version = "0.9", optional = true}
-aws-sdk-sts = {version = "0.9", optional = true}
-aws-types = {version = "0.9", optional = true}
+aws-config = {version = "0.13", optional = true}
+aws-sdk-apigateway = {version = "0.13", optional = true}
+aws-sdk-cloudformation = {version = "0.13", optional = true}
+aws-sdk-cognitoidentityprovider = {version = "0.13", optional = true}
+aws-sdk-dynamodb = {version = "0.13", optional = true}
+aws-sdk-dynamodbstreams = {version = "0.13", optional = true}
+aws-sdk-iot = {version = "0.13", optional = true}
+aws-sdk-lambda = {version = "0.13", optional = true}
+aws-sdk-organizations = {version = "0.13", optional = true}
+aws-sdk-s3 = {version = "0.13", optional = true}
+aws-sdk-secretsmanager = {version = "0.13", optional = true}
+aws-sdk-ssm = {version = "0.13", optional = true}
+aws-sdk-sts = {version = "0.13", optional = true}
+aws-types = {version = "0.13", optional = true}
 base64 = {version = "0.13", optional = true}
 cached = {version = "0.34", optional = true}
 env_logger = {version = "0.9", optional = true}
@@ -44,10 +44,10 @@ thiserror = {version = "1", optional = true}
 
 [dev-dependencies]
 anyhow = "1"
-aws-config = "0.9"
-aws-sdk-dynamodb = "0.9"
+aws-config = "0.13"
+aws-sdk-dynamodb = "0.13"
 cargo-husky = {version = "1.5.0", default_features = false, features = ["precommit-hook", "run-cargo-check", "run-cargo-clippy", "run-cargo-fmt"]}
-serde_dynamo = {version = "3.0.0", features = ["aws-sdk-dynamodb+0_9"]}
+serde_dynamo = {version = "4", features = ["aws-sdk-dynamodb+0_13"]}
 tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
 
 [features]
