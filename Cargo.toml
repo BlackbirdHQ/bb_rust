@@ -13,6 +13,7 @@ name = "internal_graphql_request"
 required-features = ["graphql"]
 
 [dependencies]
+anyhow = {version = "1", optional = true}
 async-graphql = {version = "3.0", optional = true}
 aws-config = {version = "0.13", optional = true}
 aws-sdk-apigateway = {version = "0.13", optional = true}
@@ -36,6 +37,7 @@ graphql_client = {version = "0.10", optional = true}
 http = {optional = true, version = "0.2.8"}
 lazy_static = "1.4.0"
 log = {version = "0.4", optional = true}
+napi = {version = "2.4.3", default-features = false, features = ["napi4", "tokio_rt"], optional = true}
 serde = {version = "1", features = ["derive"], optional = true}
 serde_bytes = {version = "0.11", optional = true}
 serde_json = {version = "1", optional = true}
@@ -54,6 +56,7 @@ tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
 default = []
 graphql = ["misc", "types", "base64", "aws-sdk-lambda", "serde", "serde_json", "graphql_client", "serde_with", "async-graphql"]
 misc = ["thiserror", "flate2", "base64", "env_logger", "log", "serde_bytes", "serde", "serde_json"]
+napi = ["dep:anyhow", "dep:napi"]
 services_apigateway = [
   "aws-config",
   "aws-sdk-apigateway",

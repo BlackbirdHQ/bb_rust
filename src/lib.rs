@@ -18,3 +18,6 @@ pub mod misc;
 pub mod services;
 #[cfg(feature = "types")]
 pub mod types;
+
+#[cfg(feature = "napi")]
+pub mod napi;
