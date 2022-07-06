@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use napi::bindgen_prelude as Napi;
 
-trait AnyhowExt<T> {
+pub trait AnyhowExt<T> {
     fn to_napi_err(self) -> Napi::Result<T>;
 }
 
